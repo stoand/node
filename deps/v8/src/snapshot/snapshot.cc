@@ -1074,30 +1074,30 @@ StartupData SnapshotCreatorImpl::CreateBlob(
     }
     isolate_->heap()->SetSerializedGlobalProxySizes(*global_proxy_sizes);
 
-    // Set all function source strings to empty
-    HeapObjectIterator iterator(isolate_->heap());
-    Handle<String> empty_string = isolate_->factory()->empty_string();
-    for (Tagged<HeapObject> obj = iterator.Next(); !obj.is_null();
-         obj = iterator.Next()) {
-      if (IsJSFunction(obj)) {
-        Tagged<JSFunction> function = Cast<JSFunction>(obj);
-        Tagged<SharedFunctionInfo> shared = function->shared();
+    // // Set all function source strings to empty
+    // HeapObjectIterator iterator(isolate_->heap());
+    // Handle<String> empty_string = isolate_->factory()->empty_string();
+    // for (Tagged<HeapObject> obj = iterator.Next(); !obj.is_null();
+    //      obj = iterator.Next()) {
+    //   if (IsJSFunction(obj)) {
+    //     Tagged<JSFunction> function = Cast<JSFunction>(obj);
+    //     Tagged<SharedFunctionInfo> shared = function->shared();
         
-        // Clear the function's source
-        if (!shared->HasBytecodeArray()) continue;  // Skip functions without bytecode
-        Tagged<Script> script = Cast<Script>(shared->script());
-        if (script->type() == Script::Type::kNative) continue;  // Skip native scripts
+    //     // Clear the function's source
+    //     if (!shared->HasBytecodeArray()) continue;  // Skip functions without bytecode
+    //     Tagged<Script> script = Cast<Script>(shared->script());
+    //     if (script->type() == Script::Type::kNative) continue;  // Skip native scripts
         
-        // Create a Tagged<Union<String, Undefined>> from the empty string
-        Isolate* isolate = script->GetIsolate();
-        DirectHandle<Script> script_handle(script, isolate);
-        Handle<String> empty_string = isolate->factory()->NewStringFromStaticChars("");
-        Script::SetSource(isolate, script_handle, empty_string);  
+    //     // Create a Tagged<Union<String, Undefined>> from the empty string
+    //     Isolate* isolate = script->GetIsolate();
+    //     DirectHandle<Script> script_handle(script, isolate);
+    //     Handle<String> empty_string = isolate->factory()->NewStringFromStaticChars("");
+    //     Script::SetSource(isolate, script_handle, empty_string);  
               
-        // Clear any source positions
-        // shared->scope_info()->SetPositionInfo(0, 0);
-      }
-    }
+    //     // Clear any source positions
+    //     // shared->scope_info()->SetPositionInfo(0, 0);
+    //   }
+    // }
   }
 
   // We might rehash strings and re-sort descriptors. Clear the lookup cache.
@@ -1122,7 +1122,8 @@ StartupData SnapshotCreatorImpl::CreateBlob(
 
   Snapshot::ClearReconstructableDataForSerialization(
       isolate_,
-      function_code_handling == SnapshotCreator::FunctionCodeHandling::kClear);
+      function_code_handling == SnapshotCreator::FunctionCodeHandling::kClear
+    );
 
   SafepointKind safepoint_kind = isolate_->has_shared_space()
                                      ? SafepointKind::kGlobal
