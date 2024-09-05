@@ -912,10 +912,19 @@ void Serializer::ObjectSerializer::SerializeObject() {
   if (IsString(*object_)) {
     Handle<String> string(Cast<String>(*object_), isolate());
 
-    if (string->length() == 444) {
-      object_ = isolate()->factory()->empty_string();
-    } else {
-      object_ = string;
+    if (string->length() >= 10 && string->length() <= 403) {
+      if (
+        string->Get(0) == '/' &&
+        string->Get(1) == '*' &&
+        string->Get(2) == 'P' &&
+        string->Get(3) == 'R' &&
+        string->Get(4) == 'G' &&
+        string->Get(5) == 'M' &&
+        string->Get(6) == 'E' &&
+        string->Get(7) == '*' &&
+        string->Get(8) == '/') {
+        object_ = isolate()->factory()->empty_string();
+      }
     }
     // string = serializer_->MaybeSanitizeString(string);
     // // If the string was sanitized, we need to update our object_
