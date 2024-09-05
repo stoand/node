@@ -1043,6 +1043,9 @@ void ConvertSerializedObjectsToFixedArray(Isolate* isolate,
 StartupData SnapshotCreatorImpl::CreateBlob(
     SnapshotCreator::FunctionCodeHandling function_code_handling,
     Snapshot::SerializerFlags serializer_flags) {
+
+
+
   CHECK(!created());
   CHECK(contexts_[kDefaultContextIndex].handle_location != nullptr);
 
@@ -1053,6 +1056,32 @@ StartupData SnapshotCreatorImpl::CreateBlob(
   // serialization.
   {
     HandleScope scope(isolate_);
+
+    // Set all function source strings to empty
+    HeapObjectIterator iterator(isolate_->heap());
+
+    for (Tagged<HeapObject> obj = iterator.Next(); !obj.is_null();
+         obj = iterator.Next()) {
+      if (IsJSFunction(obj)) {
+        Tagged<JSFunction> function = Cast<JSFunction>(obj);
+        Tagged<SharedFunctionInfo> shared = function->shared();
+        if (IsScript(shared->script())) {
+          Tagged<Script> script = Cast<Script>(shared->script());
+          if (script->type() == Script::Type::kNormal) {
+            Handle<String> source = handle(Cast<String>(script->source()), isolate_);
+          
+              Handle<String> prefix = isolate_->factory()->InternalizeString(base::OneByteVector("/*pRgmE*/"));
+              
+              if (source->length() < 10) {
+                  Handle<String> new_source = isolate_->factory()->NewConsString(prefix, source).ToHandleChecked();
+                  DirectHandle<Script> script_handle(script, isolate_);
+                  Script::SetSource(isolate_, script_handle, new_source);
+              }
+          }
+        }
+      }
+    }
+
 
     // Convert list of context-independent data to FixedArray.
     ConvertSerializedObjectsToFixedArray(isolate_);
@@ -1073,26 +1102,6 @@ StartupData SnapshotCreatorImpl::CreateBlob(
           Smi::FromInt(context_at(i)->global_proxy()->Size()));
     }
     isolate_->heap()->SetSerializedGlobalProxySizes(*global_proxy_sizes);
-
-    // Set all function source strings to empty
-    HeapObjectIterator iterator(isolate_->heap());
-
-    for (Tagged<HeapObject> obj = iterator.Next(); !obj.is_null();
-         obj = iterator.Next()) {
-      if (IsJSFunction(obj)) {
-        Tagged<JSFunction> function = Cast<JSFunction>(obj);
-        Tagged<SharedFunctionInfo> shared = function->shared();
-        if (IsScript(shared->script())) {
-          Tagged<Script> script = Cast<Script>(shared->script());
-          Handle<String> source = handle(Cast<String>(script->source()), isolate_);
-          Handle<String> prefix = isolate_->factory()->InternalizeString(base::OneByteVector("/*pRgmE*/"));
-          Handle<String> new_source = isolate_->factory()->NewConsString(prefix, source).ToHandleChecked();
-          
-          DirectHandle<Script> script_handle(script, isolate_);
-          Script::SetSource(isolate_, script_handle, new_source);
-        }
-      }
-    }
   }
 
   // We might rehash strings and re-sort descriptors. Clear the lookup cache.
