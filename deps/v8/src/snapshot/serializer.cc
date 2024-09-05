@@ -24,6 +24,7 @@
 #include "src/snapshot/embedded/embedded-data.h"
 #include "src/snapshot/serializer-deserializer.h"
 #include "src/snapshot/serializer-inl.h"
+#include "src/strings/string-hasher.h"
 
 namespace v8 {
 namespace internal {
@@ -906,6 +907,23 @@ SnapshotSpace GetSnapshotSpace(Tagged<HeapObject> object) {
 }  // namespace
 
 void Serializer::ObjectSerializer::SerializeObject() {
+
+
+  if (IsString(*object_)) {
+    Handle<String> string(Cast<String>(*object_), isolate());
+
+    if (string->length() == 444) {
+      object_ = isolate()->factory()->empty_string();
+    } else {
+      object_ = string;
+    }
+    // string = serializer_->MaybeSanitizeString(string);
+    // // If the string was sanitized, we need to update our object_
+    // if (!string.is_identical_to(object_)) {
+      
+    // }
+  }
+
   Tagged<Map> map = object_->map(serializer_->cage_base());
   int size = object_->SizeFromMap(map);
 
