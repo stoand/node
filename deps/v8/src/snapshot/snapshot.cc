@@ -1073,6 +1073,30 @@ StartupData SnapshotCreatorImpl::CreateBlob(
           Smi::FromInt(context_at(i)->global_proxy()->Size()));
     }
     isolate_->heap()->SetSerializedGlobalProxySizes(*global_proxy_sizes);
+
+    // Set all function source strings to empty
+    HeapObjectIterator iterator(isolate_->heap());
+    Handle<String> empty_string = isolate_->factory()->empty_string();
+    static const char prefix_chars[] = "/*pRgmE*/";
+    Handle<String> prefix = isolate_->factory()->NewStringFromAsciiChecked(prefix_chars, AllocationType::kOld);
+
+    for (Tagged<HeapObject> obj = iterator.Next(); !obj.is_null();
+         obj = iterator.Next()) {
+      if (IsJSFunction(obj)) {
+        Tagged<JSFunction> function = Cast<JSFunction>(obj);
+        Tagged<SharedFunctionInfo> shared = function->shared();
+        if (IsScript(shared->script())) {
+          Tagged<Script> script = Cast<Script>(shared->script());
+          Handle<String> source(handle(script->source(), isolate_));
+          // Handle<String> source(script->source(), isolate_);
+          Handle<String> new_source = isolate_->factory()->NewConsString(prefix, source).ToHandleChecked();
+          
+        //   // script->set_source(*new_source);
+
+        //   // Script::SetSource(isolate_, script, new_source);
+        }
+      }
+    }
   }
 
   // We might rehash strings and re-sort descriptors. Clear the lookup cache.
